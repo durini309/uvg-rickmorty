@@ -1,9 +1,7 @@
-package com.uvg.rickandmorty.presentation.character.profile
+package com.uvg.rickandmorty.presentation.mainFlow.location.profile
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,11 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,37 +23,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.uvg.rickandmorty.data.model.Character
-import com.uvg.rickandmorty.data.source.CharacterDb
+import com.uvg.rickandmorty.data.model.Location
+import com.uvg.rickandmorty.data.source.LocationDb
 import com.uvg.rickandmorty.presentation.ui.theme.RickAndMortyTheme
 
 @Composable
-fun CharacterProfileRoute(
-    id: Int,
+fun LocationProfileRoute(
+    locationId: Int,
     onNavigateBack: () -> Unit
 ) {
-    val characterDb = CharacterDb()
-    val character = characterDb.getCharacterById(id)
-    CharacterProfileScreen(
-        character = character,
-        onNavigateBack = onNavigateBack,
-        modifier = Modifier.fillMaxSize()
-    )
+    val locationDb = LocationDb()
+    val location = locationDb.getLocationById(locationId)
+    LocationProfileScreen(location = location, onNavigateBack = onNavigateBack)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CharacterProfileScreen(
-    character: Character,
+private fun LocationProfileScreen(
+    location: Location,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
     ) {
         TopAppBar(
             title = {
-                Text("Character Detail")
+                Text("Location Details")
             },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
@@ -74,39 +65,24 @@ private fun CharacterProfileScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .size(200.dp)
-                    .background(MaterialTheme.colorScheme.secondaryContainer, shape = CircleShape)
-            ) {
-                Icon(
-                    Icons.Outlined.Person,
-                    contentDescription = "Person",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = character.name,
+                text = location.name,
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(16.dp))
-            CharacterProfilePropItem(
-                title = "Species:",
-                value = character.species,
+            LocationProfilePropItem(
+                title = "ID:",
+                value = location.id.toString(),
                 modifier = Modifier.fillMaxWidth()
             )
-            CharacterProfilePropItem(
-                title = "Status:",
-                value = character.status,
+            LocationProfilePropItem(
+                title = "Type:",
+                value = location.type,
                 modifier = Modifier.fillMaxWidth()
             )
-            CharacterProfilePropItem(
-                title = "Gender:",
-                value = character.gender,
+            LocationProfilePropItem(
+                title = "Dimensions:",
+                value = location.dimension,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -114,7 +90,7 @@ private fun CharacterProfileScreen(
 }
 
 @Composable
-private fun CharacterProfilePropItem(
+private fun LocationProfilePropItem(
     title: String,
     value: String,
     modifier: Modifier = Modifier
@@ -131,19 +107,11 @@ private fun CharacterProfilePropItem(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun PreviewCharacterProfileScreen() {
-    RickAndMortyTheme {
+private fun PreviewLocationProfileScreen() {
+    RickAndMortyTheme() {
         Surface {
-            CharacterProfileScreen(
-                character = Character(
-                    id = 2565,
-                    name = "Rick",
-                    status = "Alive",
-                    species = "Human",
-                    gender = "Male",
-                    image = ""
-
-                ),
+            LocationProfileScreen(
+                location = Location(1, "Earth (C-137)", "Planet", "Dimension C-137"),
                 onNavigateBack = { },
                 modifier = Modifier.fillMaxSize()
             )

@@ -1,4 +1,4 @@
-package com.uvg.rickandmorty.presentation.character.list
+package com.uvg.rickandmorty.presentation.mainFlow.character.list
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable

@@ -1,4 +1,4 @@
-package com.uvg.rickandmorty.presentation.character.profile
+package com.uvg.rickandmorty.presentation.mainFlow.character.profile
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
