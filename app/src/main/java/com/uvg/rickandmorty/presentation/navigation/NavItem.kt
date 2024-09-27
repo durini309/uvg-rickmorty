@@ -14,11 +14,11 @@ import com.uvg.rickandmorty.presentation.mainFlow.location.LocationsNavGraph
 import com.uvg.rickandmorty.presentation.mainFlow.location.list.LocationListDestination
 import com.uvg.rickandmorty.presentation.mainFlow.profile.ProfileDestination
 
-data class NavItem<T: Any>(
+data class NavItem(
     val title: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val destination: T,
+    val destination: Any, // Utilizamos Any ya que debemos poner aquí nuestros Destinations
 )
 
 val navigationItems = listOf(
@@ -47,3 +47,4 @@ val topLevelDestinations = listOf(
     LocationListDestination::class,
     ProfileDestination::class
 )
+
