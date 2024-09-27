@@ -2,6 +2,7 @@ package com.uvg.rickandmorty.presentation.mainFlow.location.profile
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,28 +22,36 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uvg.rickandmorty.data.model.Location
-import com.uvg.rickandmorty.data.source.LocationDb
 import com.uvg.rickandmorty.presentation.ui.theme.RickAndMortyTheme
 
 @Composable
 fun LocationProfileRoute(
-    locationId: Int,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: LocationProfileViewModel = viewModel()
 ) {
-    val locationDb = LocationDb()
-    val location = locationDb.getLocationById(locationId)
-    LocationProfileScreen(location = location, onNavigateBack = onNavigateBack)
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LocationProfileScreen(
+        state = state,
+        onGetInfoClick = {
+            viewModel.getLocationData()
+        },
+        onNavigateBack = onNavigateBack
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LocationProfileScreen(
-    location: Location,
+    state: LocationProfileState,
+    onGetInfoClick: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -57,34 +68,69 @@ private fun LocationProfileScreen(
                 }
             }
         )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 64.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = location.name,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            LocationProfilePropItem(
-                title = "ID:",
-                value = location.id.toString(),
-                modifier = Modifier.fillMaxWidth()
-            )
-            LocationProfilePropItem(
-                title = "Type:",
-                value = location.type,
-                modifier = Modifier.fillMaxWidth()
-            )
-            LocationProfilePropItem(
-                title = "Dimensions:",
-                value = location.dimension,
-                modifier = Modifier.fillMaxWidth()
-            )
+        LocationProfileContent(
+            location = state.data,
+            isLoading = state.loading,
+            onGetInfoClick = onGetInfoClick,
+            modifier = Modifier.fillMaxSize()
+        )
+
+    }
+}
+
+@Composable
+private fun LocationProfileContent(
+    location: Location?,
+    isLoading: Boolean,
+    onGetInfoClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        when {
+            isLoading -> {
+                Text("Cargando, paciente.")
+            }
+
+            location == null -> {
+                Button(
+                    onClick = onGetInfoClick,
+                    modifier = Modifier.align(Alignment.Center)
+                ) {
+                    Text("Obtener informacion")
+                }
+            }
+
+            else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 64.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = location.name,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LocationProfilePropItem(
+                        title = "ID:",
+                        value = location.id.toString(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    LocationProfilePropItem(
+                        title = "Type:",
+                        value = location.type,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    LocationProfilePropItem(
+                        title = "Dimensions:",
+                        value = location.dimension,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         }
     }
 }
@@ -105,14 +151,53 @@ private fun LocationProfilePropItem(
 }
 
 @Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewLocationProfileScreen() {
     RickAndMortyTheme() {
         Surface {
             LocationProfileScreen(
-                location = Location(1, "Earth (C-137)", "Planet", "Dimension C-137"),
+                state = LocationProfileState(
+                    loading = false,
+                    data = Location(1, "Earth (C-137)", "Planet", "Dimension C-137")
+                ),
                 onNavigateBack = { },
+                onGetInfoClick = { },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewLoadingLocationProfileScreen() {
+    RickAndMortyTheme() {
+        Surface {
+            LocationProfileScreen(
+                state = LocationProfileState(
+                    loading = true,
+                    data = null
+                ),
+                onNavigateBack = { },
+                onGetInfoClick = { },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewEmptyLocationProfileScreen() {
+    RickAndMortyTheme() {
+        Surface {
+            LocationProfileScreen(
+                state = LocationProfileState(
+                    loading = false,
+                    data = null
+                ),
+                onNavigateBack = { },
+                onGetInfoClick = { },
                 modifier = Modifier.fillMaxSize()
             )
         }

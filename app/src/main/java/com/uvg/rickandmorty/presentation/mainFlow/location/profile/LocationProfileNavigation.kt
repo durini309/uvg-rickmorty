@@ -25,10 +25,8 @@ fun NavController.navigateToLocationProfileScreen(
 fun NavGraphBuilder.locationProfileScreen(
     onNavigateBack: () -> Unit
 ) {
-    composable<LocationProfileDestination> { backStackEntry ->
-        val destination: LocationProfileDestination = backStackEntry.toRoute()
+    composable<LocationProfileDestination> {
         LocationProfileRoute(
-            locationId = destination.locationId,
             onNavigateBack = onNavigateBack
         )
     }
