@@ -27,25 +27,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uvg.rickandmorty.data.model.Character
 import com.uvg.rickandmorty.data.source.CharacterDb
+import com.uvg.rickandmorty.presentation.common.ErrorView
+import com.uvg.rickandmorty.presentation.common.LoadingView
+import com.uvg.rickandmorty.presentation.mainFlow.location.list.LocationListEvent
 import com.uvg.rickandmorty.presentation.ui.theme.RickAndMortyTheme
 import kotlin.random.Random
 
 @Composable
 fun CharacterListRoute(
     onCharacterClick: (Int) -> Unit,
+    viewModel: CharacterListViewModel = viewModel(factory = CharacterListViewModel.Factory)
 ) {
-    val characterDb = CharacterDb()
-    val characters = characterDb.getAllCharacters()
-    val randomNum by rememberSaveable {
-        mutableIntStateOf(Random.nextInt())
-    }
-    // Use rememberSaveable to persist the state across recompositions and process death
+    val state by viewModel.state.collectAsStateWithLifecycle()
     CharacterListScreen(
-        num = randomNum,
-        characters = characters,
+        state = state,
+        forceError = { viewModel.onEvent(CharacterListEvent.ForceError) },
+        onRetryClick = { viewModel.onEvent(CharacterListEvent.RetryClick) },
         onCharacterClick = onCharacterClick,
         modifier = Modifier.fillMaxSize()
     )
@@ -53,28 +57,46 @@ fun CharacterListRoute(
 
 @Composable
 private fun CharacterListScreen(
-    num: Int,
-    characters: List<Character>,
+    state: CharacterListState,
+    forceError: () -> Unit,
+    onRetryClick: () -> Unit,
     onCharacterClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier
-    ) {
-        item {
-            Text(
-                text = num.toString(),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
-        items(characters) { item ->
-            CharacterItem(
-                character = item,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onCharacterClick(item.id) }
-            )
+    Box(modifier) {
+        when {
+            state.isLoading -> {
+                LoadingView(
+                    loadingText = "Obteniendo personajes",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .clickable { forceError() }
+                )
+            }
+
+            state.isError -> {
+                ErrorView(
+                    errorText = "Uh, oh. Error al obtener personajes",
+                    onRetryClick = onRetryClick,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = modifier
+                ) {
+                    items(state.characters) { item ->
+                        CharacterItem(
+                            character = item,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onCharacterClick(item.id) }
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -121,16 +143,48 @@ private fun CharacterItem(
     }
 }
 
+private class CharacterListParameterProvider : CollectionPreviewParameterProvider<CharacterListState>(
+    listOf(
+        CharacterListState(),
+        CharacterListState(
+            isLoading = false,
+            characters = listOf(
+                Character(
+                    id = 1,
+                    name = "Carolyn Salinas",
+                    status = "movet",
+                    species = "iaculis",
+                    gender = "parturient",
+                    image = "quidam"
+                ),
+                Character(
+                    id = 2,
+                    name = "Carolyn Salinas",
+                    status = "movet",
+                    species = "iaculis",
+                    gender = "parturient",
+                    image = "quidam"
+                )
+            )
+        ),
+        CharacterListState(
+            isLoading = false,
+            isError = true
+        )
+    )
+)
+
 @Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun PreviewCharacterListScreen() {
+private fun PreviewCharacterListScreen(
+    @PreviewParameter(CharacterListParameterProvider::class) state: CharacterListState
+) {
     RickAndMortyTheme() {
         Surface {
-            val db = CharacterDb()
             CharacterListScreen(
-                num = 4,
-                characters = db.getAllCharacters().take(6),
+                state = state,
+                forceError = {},
+                onRetryClick = {},
                 onCharacterClick = {},
                 modifier = Modifier.fillMaxSize()
             )
